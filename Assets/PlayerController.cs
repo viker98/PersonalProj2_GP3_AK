@@ -18,13 +18,15 @@ public class PlayerController : NetworkBehaviour
     public float lookLimitV = 89f; 
 
     private PlayerLocomotionInput _playerLocomotionInput;
+    private PlayerActionInput _playerActionInput;
     private Vector2 _cameraRotation = Vector2.zero;
     private Vector2 _playerTargetRotation = Vector2.zero;
 
     private void Awake()
     {
         _playerLocomotionInput = GetComponent<PlayerLocomotionInput>();
-        _animator = GetComponent<Animator>();
+        _playerActionInput = GetComponent<PlayerActionInput>();
+        //_animator = GetComponent<Animator>();
     }
 
     private void Update()
@@ -60,8 +62,7 @@ public class PlayerController : NetworkBehaviour
 
         _characterController.Move(newVelocity * Time.deltaTime);
 
-        _animator.SetFloat("X", _playerLocomotionInput.MovementInput.x);
-        _animator.SetFloat("Y", _playerLocomotionInput.MovementInput.y);
+        //_animator.SetFloat("X", newVelocity.magnitude);
     }
 
     private void CalculatePlayerAim() 

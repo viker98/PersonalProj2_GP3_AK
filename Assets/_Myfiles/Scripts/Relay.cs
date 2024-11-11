@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
@@ -11,27 +10,37 @@ using UnityEngine;
 
 public class Relay : MonoBehaviour
 {
+
+    public static Relay Instance { get; private set; }
+
+
     public string joinCode {get; private set;}
     public bool inServer { get; private set;}
-    private async void Start()
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+   /* private async void Start()
     {
         await UnityServices.InitializeAsync();
 
         AuthenticationService.Instance.SignedIn += () =>
         {
-            Debug.Log("Signed in " + AuthenticationService.Instance.PlayerId);
+          Debug.Log("Signed in " + AuthenticationService.Instance.PlayerId);
         };
+        
         await AuthenticationService.Instance.SignInAnonymouslyAsync();
     }
-
-    public async void CreateRelay()
+    */
+    public async Task<string> CreateRelay()
     {
         try
         {
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3);
 
-            joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-  
+            string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+
             Debug.Log(joinCode);
 
             RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
@@ -39,13 +48,13 @@ public class Relay : MonoBehaviour
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
             NetworkManager.Singleton.StartHost();
-            
-            inServer = true;
+
+            return joinCode;
         }
         catch(RelayServiceException e)
         {
             Debug.Log(e);
-            inServer = false;
+            return null;
         }
     }
 

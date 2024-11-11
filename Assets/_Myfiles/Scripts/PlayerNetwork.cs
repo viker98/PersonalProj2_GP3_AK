@@ -1,4 +1,5 @@
 using Cinemachine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -7,7 +8,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerNetwork : NetworkBehaviour
 {
-    private NetworkVariable<int> _health = new NetworkVariable<int>(100);
+    int _health = 100;
 
     [SerializeField] private CinemachineVirtualCamera vc;
     [SerializeField] private AudioListener audioListener;
@@ -25,16 +26,35 @@ public class PlayerNetwork : NetworkBehaviour
             vc.Priority = 0;
         }
     }
-    private void Update()
+
+    public void TakeDamage(int damage)
     {
-        if (IsOwner)
+        _health -= damage;
+        Debug.Log($"{gameObject.name} took {damage} damage. Their health is now {_health}");
+
+
+            //GamePlayUI.Instance.SetHealthSlider(_health);
+   
+        
+            
+        if(_health <= 0)
         {
-            if (Input.GetKeyDown(KeyCode.T))
-            {
-                _health.Value -= 10;
-                Debug.Log($"{OwnerClientId} Health is now {_health.Value}");
-            }
+            RpcRespawnClientRpc();
         }
 
+    }
+
+    [ClientRpc]
+    void RpcRespawnClientRpc()
+    {
+        if (IsLocalPlayer)
+        {
+            transform.position = Vector3.zero;
+        }
+    }
+
+    IEnumerator DeathTimer()
+    {
+        yield return new WaitForSeconds(5);
     }
 }

@@ -28,7 +28,7 @@ public class NetworkManagerUI : MonoBehaviour
         hostButton.onClick.AddListener( () =>
         {
             NetworkManager.Singleton.StartHost();
-            _relay.CreateRelay();
+           // _relay.CreateRelay();
         });
         clientButton.onClick.AddListener(() =>
         {

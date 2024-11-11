@@ -31,6 +31,11 @@ public class PlayerLocomotionInput : MonoBehaviour, PlayerControls.IPlayerLocomo
         PlayerControls.PlayerLocomotionMap.Disable();
         PlayerControls.PlayerLocomotionMap.RemoveCallbacks(this);
     }
+
+    private void Update()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+    }
     public void OnMovement(InputAction.CallbackContext context)
     {
         MovementInput = context.ReadValue<Vector2>();
