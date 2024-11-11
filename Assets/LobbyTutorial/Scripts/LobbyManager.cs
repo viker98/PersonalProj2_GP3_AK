@@ -7,7 +7,8 @@ using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
-public class LobbyManager : MonoBehaviour {
+public class LobbyManager : MonoBehaviour 
+{
 
 
     public static LobbyManager Instance { get; private set; }
@@ -26,22 +27,27 @@ public class LobbyManager : MonoBehaviour {
     public event EventHandler<LobbyEventArgs> OnKickedFromLobby;
     public event EventHandler<LobbyEventArgs> OnLobbyGameModeChanged;
     public event EventHandler<EventArgs> OnGameStarted;
-    public class LobbyEventArgs : EventArgs {
+    public class LobbyEventArgs : EventArgs
+    {
         public Lobby lobby;
     }
 
     public event EventHandler<OnLobbyListChangedEventArgs> OnLobbyListChanged;
-    public class OnLobbyListChangedEventArgs : EventArgs {
+    public class OnLobbyListChangedEventArgs : EventArgs
+    {
         public List<Lobby> lobbyList;
     }
 
 
-    public enum GameMode {
+    public enum GameMode 
+    {
         CaptureTheFlag,
-        Conquest
+        Conquest,
+        TeamDeathMatch
     }
 
-    public enum PlayerCharacter {
+    public enum PlayerCharacter 
+    {
         Marine,
         Ninja,
         Zombie
@@ -56,17 +62,20 @@ public class LobbyManager : MonoBehaviour {
     private string playerName;
 
 
-    private void Awake() {
+    private void Awake() 
+    {
         Instance = this;
     }
 
-    private void Update() {
+    private void Update()
+    {
         //HandleRefreshLobbyList(); // Disabled Auto Refresh for testing with multiple builds
         HandleLobbyHeartbeat();
         HandleLobbyPolling();
     }
 
-    public async void Authenticate(string playerName) {
+    public async void Authenticate(string playerName) 
+    {
         this.playerName = playerName;
         InitializationOptions initializationOptions = new InitializationOptions();
         initializationOptions.SetProfile(playerName);
@@ -83,10 +92,13 @@ public class LobbyManager : MonoBehaviour {
         await AuthenticationService.Instance.SignInAnonymouslyAsync();
     }
 
-    private void HandleRefreshLobbyList() {
-        if (UnityServices.State == ServicesInitializationState.Initialized && AuthenticationService.Instance.IsSignedIn) {
+    private void HandleRefreshLobbyList() 
+    {
+        if (UnityServices.State == ServicesInitializationState.Initialized && AuthenticationService.Instance.IsSignedIn) 
+        {
             refreshLobbyListTimer -= Time.deltaTime;
-            if (refreshLobbyListTimer < 0f) {
+            if (refreshLobbyListTimer < 0f)
+            {
                 float refreshLobbyListTimerMax = 5f;
                 refreshLobbyListTimer = refreshLobbyListTimerMax;
 
@@ -95,10 +107,13 @@ public class LobbyManager : MonoBehaviour {
         }
     }
 
-    private async void HandleLobbyHeartbeat() {
-        if (IsLobbyHost()) {
+    private async void HandleLobbyHeartbeat()
+    {
+        if (IsLobbyHost())
+        {
             heartbeatTimer -= Time.deltaTime;
-            if (heartbeatTimer < 0f) {
+            if (heartbeatTimer < 0f)
+            {
                 float heartbeatTimerMax = 15f;
                 heartbeatTimer = heartbeatTimerMax;
 
@@ -147,18 +162,24 @@ public class LobbyManager : MonoBehaviour {
         }
     }
 
-    public Lobby GetJoinedLobby() {
+    public Lobby GetJoinedLobby() 
+    {
         return joinedLobby;
     }
 
-    public bool IsLobbyHost() {
+    public bool IsLobbyHost()
+    {
         return joinedLobby != null && joinedLobby.HostId == AuthenticationService.Instance.PlayerId;
     }
 
-    private bool IsPlayerInLobby() {
-        if (joinedLobby != null && joinedLobby.Players != null) {
-            foreach (Player player in joinedLobby.Players) {
-                if (player.Id == AuthenticationService.Instance.PlayerId) {
+    private bool IsPlayerInLobby()
+    {
+        if (joinedLobby != null && joinedLobby.Players != null)
+        {
+            foreach (Player player in joinedLobby.Players)
+            {
+                if (player.Id == AuthenticationService.Instance.PlayerId)
+                {
                     // This player is in this lobby
                     return true;
                 }
@@ -167,19 +188,23 @@ public class LobbyManager : MonoBehaviour {
         return false;
     }
 
-    private Player GetPlayer() {
+    private Player GetPlayer()
+    {
         return new Player(AuthenticationService.Instance.PlayerId, null, new Dictionary<string, PlayerDataObject> {
             { KEY_PLAYER_NAME, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerName) },
             { KEY_PLAYER_CHARACTER, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, PlayerCharacter.Marine.ToString()) }
         });
     }
 
-    public void ChangeGameMode() {
-        if (IsLobbyHost()) {
+    public void ChangeGameMode()
+    {
+        if (IsLobbyHost())
+        {
             GameMode gameMode =
                 Enum.Parse<GameMode>(joinedLobby.Data[KEY_GAME_MODE].Value);
 
-            switch (gameMode) {
+            switch (gameMode) 
+            {
                 default:
                 case GameMode.CaptureTheFlag:
                     gameMode = GameMode.Conquest;
@@ -187,20 +212,25 @@ public class LobbyManager : MonoBehaviour {
                 case GameMode.Conquest:
                     gameMode = GameMode.CaptureTheFlag;
                     break;
+                case GameMode.TeamDeathMatch:
+                    gameMode = GameMode.TeamDeathMatch;
+                    break;
             }
 
             UpdateLobbyGameMode(gameMode);
         }
     }
 
-    public async void CreateLobby(string lobbyName, int maxPlayers, bool isPrivate, GameMode gameMode) {
+    public async void CreateLobby(string lobbyName, int maxPlayers, bool isPrivate, GameMode gameMode) 
+    {
         Player player = GetPlayer();
 
         CreateLobbyOptions options = new CreateLobbyOptions
         {
             Player = player,
             IsPrivate = isPrivate,
-            Data = new Dictionary<string, DataObject> {
+            Data = new Dictionary<string, DataObject> 
+            {
                 { KEY_GAME_MODE, new DataObject(DataObject.VisibilityOptions.Public, gameMode.ToString()) },
                 { KEY_START_GAME, new DataObject(DataObject.VisibilityOptions.Member, "0") }
             }
@@ -215,13 +245,16 @@ public class LobbyManager : MonoBehaviour {
         Debug.Log("Created Lobby " + lobby.Name);
     }
 
-    public async void RefreshLobbyList() {
-        try {
+    public async void RefreshLobbyList()
+    {
+        try 
+        {
             QueryLobbiesOptions options = new QueryLobbiesOptions();
             options.Count = 25;
 
             // Filter for open lobbies only
-            options.Filters = new List<QueryFilter> {
+            options.Filters = new List<QueryFilter> 
+            {
                 new QueryFilter(
                     field: QueryFilter.FieldOptions.AvailableSlots,
                     op: QueryFilter.OpOptions.GT,
@@ -229,7 +262,8 @@ public class LobbyManager : MonoBehaviour {
             };
 
             // Order by newest lobbies first
-            options.Order = new List<QueryOrder> {
+            options.Order = new List<QueryOrder> 
+            {
                 new QueryOrder(
                     asc: false,
                     field: QueryOrder.FieldOptions.Created)
@@ -238,15 +272,19 @@ public class LobbyManager : MonoBehaviour {
             QueryResponse lobbyListQueryResponse = await Lobbies.Instance.QueryLobbiesAsync();
 
             OnLobbyListChanged?.Invoke(this, new OnLobbyListChangedEventArgs { lobbyList = lobbyListQueryResponse.Results });
-        } catch (LobbyServiceException e) {
+        } 
+        catch (LobbyServiceException e) 
+        {
             Debug.Log(e);
         }
     }
 
-    public async void JoinLobbyByCode(string lobbyCode) {
+    public async void JoinLobbyByCode(string lobbyCode)
+    {
         Player player = GetPlayer();
 
-        Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, new JoinLobbyByCodeOptions {
+        Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, new JoinLobbyByCodeOptions
+        {
             Player = player
         });
 
@@ -255,24 +293,30 @@ public class LobbyManager : MonoBehaviour {
         OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
     }
 
-    public async void JoinLobby(Lobby lobby) {
+    public async void JoinLobby(Lobby lobby) 
+    {
         Player player = GetPlayer();
 
-        joinedLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id, new JoinLobbyByIdOptions {
+        joinedLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id, new JoinLobbyByIdOptions 
+        {
             Player = player
         });
 
         OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
     }
 
-    public async void UpdatePlayerName(string playerName) {
+    public async void UpdatePlayerName(string playerName) 
+    {
         this.playerName = playerName;
 
-        if (joinedLobby != null) {
-            try {
+        if (joinedLobby != null) 
+        {
+            try 
+            {
                 UpdatePlayerOptions options = new UpdatePlayerOptions();
 
-                options.Data = new Dictionary<string, PlayerDataObject>() {
+                options.Data = new Dictionary<string, PlayerDataObject>() 
+                {
                     {
                         KEY_PLAYER_NAME, new PlayerDataObject(
                             visibility: PlayerDataObject.VisibilityOptions.Public,
@@ -286,18 +330,24 @@ public class LobbyManager : MonoBehaviour {
                 joinedLobby = lobby;
 
                 OnJoinedLobbyUpdate?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
-            } catch (LobbyServiceException e) {
+            } 
+            catch (LobbyServiceException e)
+            {
                 Debug.Log(e);
             }
         }
     }
 
-    public async void UpdatePlayerCharacter(PlayerCharacter playerCharacter) {
-        if (joinedLobby != null) {
-            try {
+    public async void UpdatePlayerCharacter(PlayerCharacter playerCharacter) 
+    {
+        if (joinedLobby != null) 
+        {
+            try 
+            {
                 UpdatePlayerOptions options = new UpdatePlayerOptions();
 
-                options.Data = new Dictionary<string, PlayerDataObject>() {
+                options.Data = new Dictionary<string, PlayerDataObject>() 
+                {
                     {
                         KEY_PLAYER_CHARACTER, new PlayerDataObject(
                             visibility: PlayerDataObject.VisibilityOptions.Public,
@@ -311,55 +361,75 @@ public class LobbyManager : MonoBehaviour {
                 joinedLobby = lobby;
 
                 OnJoinedLobbyUpdate?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
-            } catch (LobbyServiceException e) {
+            }
+            catch (LobbyServiceException e)
+            {
                 Debug.Log(e);
             }
         }
     }
 
-    public async void QuickJoinLobby() {
-        try {
+    public async void QuickJoinLobby() 
+    {
+        try
+        {
             QuickJoinLobbyOptions options = new QuickJoinLobbyOptions();
 
             Lobby lobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
             joinedLobby = lobby;
 
             OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
-        } catch (LobbyServiceException e) {
+        }
+        catch (LobbyServiceException e)
+        {
             Debug.Log(e);
         }
     }
 
-    public async void LeaveLobby() {
-        if (joinedLobby != null) {
-            try {
+    public async void LeaveLobby() 
+    {
+        if (joinedLobby != null) 
+        {
+            try 
+            {
                 await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, AuthenticationService.Instance.PlayerId);
 
                 joinedLobby = null;
 
                 OnLeftLobby?.Invoke(this, EventArgs.Empty);
-            } catch (LobbyServiceException e) {
+            } 
+            catch (LobbyServiceException e)
+            {
                 Debug.Log(e);
             }
         }
     }
 
-    public async void KickPlayer(string playerId) {
-        if (IsLobbyHost()) {
-            try {
+    public async void KickPlayer(string playerId)
+    {
+        if (IsLobbyHost()) 
+        {
+            try 
+            {
                 await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
-            } catch (LobbyServiceException e) {
+            } 
+            catch (LobbyServiceException e)
+            {
                 Debug.Log(e);
             }
         }
     }
 
-    public async void UpdateLobbyGameMode(GameMode gameMode) {
-        try {
+    public async void UpdateLobbyGameMode(GameMode gameMode) 
+    {
+        try 
+        {
             Debug.Log("UpdateLobbyGameMode " + gameMode);
             
-            Lobby lobby = await Lobbies.Instance.UpdateLobbyAsync(joinedLobby.Id, new UpdateLobbyOptions {
-                Data = new Dictionary<string, DataObject> {
+            Lobby lobby = await Lobbies.Instance.UpdateLobbyAsync(joinedLobby.Id, new UpdateLobbyOptions 
+            {
+                Data = new Dictionary<string, DataObject>
+                {
                     { KEY_GAME_MODE, new DataObject(DataObject.VisibilityOptions.Public, gameMode.ToString()) }
                 }
             });
@@ -367,7 +437,9 @@ public class LobbyManager : MonoBehaviour {
             joinedLobby = lobby;
 
             OnLobbyGameModeChanged?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
-        } catch (LobbyServiceException e) {
+        } 
+        catch (LobbyServiceException e) 
+        {
             Debug.Log(e);
         }
     }

@@ -30,31 +30,7 @@ public class PlayerNetwork : NetworkBehaviour
     public void TakeDamage(int damage)
     {
         _health -= damage;
-        Debug.Log($"{gameObject.name} took {damage} damage. Their health is now {_health}");
-
-
-            //GamePlayUI.Instance.SetHealthSlider(_health);
-   
-        
-            
-        if(_health <= 0)
-        {
-            RpcRespawnClientRpc();
-        }
-
+        Debug.Log($"{gameObject.name} took {damage} damage. Their health is now {_health}");      
     }
 
-    [ClientRpc]
-    void RpcRespawnClientRpc()
-    {
-        if (IsLocalPlayer)
-        {
-            transform.position = Vector3.zero;
-        }
-    }
-
-    IEnumerator DeathTimer()
-    {
-        yield return new WaitForSeconds(5);
-    }
 }
